@@ -8,8 +8,8 @@ import {
 } from 'firebase/firestore';
 
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? '/api'  // Firebase Functions URL in production
-  : 'http://localhost:5001/your-project-id/us-central1/api'; // Local emulator
+  ? '/api'  // Netlify Functions URL in production
+  : 'http://localhost:8888/.netlify/functions/api'; // Netlify dev server
 
 class SessionService {
   constructor() {

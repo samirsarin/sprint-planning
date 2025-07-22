@@ -8,7 +8,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://your-project-id-default-rtdb.firebaseio.com/api/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 [[redirects]]
@@ -17,17 +17,31 @@
   status = 200
 
 [context.production.environment]
-  REACT_APP_FIREBASE_API_KEY = "your-api-key"
-  REACT_APP_FIREBASE_AUTH_DOMAIN = "your-project-id.firebaseapp.com"
-  REACT_APP_FIREBASE_PROJECT_ID = "your-project-id"
-  REACT_APP_FIREBASE_STORAGE_BUCKET = "your-project-id.appspot.com"
-  REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "123456789"
-  REACT_APP_FIREBASE_APP_ID = "your-app-id"
+  REACT_APP_FIREBASE_API_KEY = "AIzaSyAna8fTgo9iMZBYBWDuVuW1iJIBWlDpPZI"
+  REACT_APP_FIREBASE_AUTH_DOMAIN = "sprint-planning-app-5c655.firebaseapp.com"
+  REACT_APP_FIREBASE_PROJECT_ID = "sprint-planning-app-5c655"
+  REACT_APP_FIREBASE_STORAGE_BUCKET = "sprint-planning-app-5c655.firebasestorage.app"
+  REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "1017106301522"
+  REACT_APP_FIREBASE_APP_ID = "1:1017106301522:web:6ead796d5bb4c76322958b"
+  
+  # Firebase Admin SDK (for Netlify Functions)
+  FIREBASE_PROJECT_ID = "sprint-planning-app-5c655"
+  FIREBASE_PRIVATE_KEY_ID = "your-private-key-id"
+  FIREBASE_PRIVATE_KEY = "your-private-key"
+  FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-xxxxx@sprint-planning-app-5c655.iam.gserviceaccount.com"
+  FIREBASE_CLIENT_ID = "your-client-id"
 
 [context.deploy-preview.environment]
-  REACT_APP_FIREBASE_API_KEY = "your-api-key"
-  REACT_APP_FIREBASE_AUTH_DOMAIN = "your-project-id.firebaseapp.com"
-  REACT_APP_FIREBASE_PROJECT_ID = "your-project-id"
-  REACT_APP_FIREBASE_STORAGE_BUCKET = "your-project-id.appspot.com"
-  REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "123456789"
-  REACT_APP_FIREBASE_APP_ID = "your-app-id" 
+  REACT_APP_FIREBASE_API_KEY = "AIzaSyAna8fTgo9iMZBYBWDuVuW1iJIBWlDpPZI"
+  REACT_APP_FIREBASE_AUTH_DOMAIN = "sprint-planning-app-5c655.firebaseapp.com"
+  REACT_APP_FIREBASE_PROJECT_ID = "sprint-planning-app-5c655"
+  REACT_APP_FIREBASE_STORAGE_BUCKET = "sprint-planning-app-5c655.firebasestorage.app"
+  REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "1017106301522"
+  REACT_APP_FIREBASE_APP_ID = "1:1017106301522:web:6ead796d5bb4c76322958b"
+  
+  # Firebase Admin SDK (for Netlify Functions)
+  FIREBASE_PROJECT_ID = "sprint-planning-app-5c655"
+  FIREBASE_PRIVATE_KEY_ID = "your-private-key-id"
+  FIREBASE_PRIVATE_KEY = "your-private-key"
+  FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-xxxxx@sprint-planning-app-5c655.iam.gserviceaccount.com"
+  FIREBASE_CLIENT_ID = "your-client-id" 

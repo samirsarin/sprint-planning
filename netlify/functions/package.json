@@ -1,0 +1,10 @@
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Sprint Planning",
+  "main": "api.js",
+  "dependencies": {
+    "firebase-admin": "^11.11.0",
+    "uuid": "^9.0.1"
+  }
+} 

@@ -10,7 +10,9 @@ This app now supports **completely free** deployment using:
 - **Frontend**: Netlify (100GB bandwidth, 300 build minutes/month)
 - **Backend**: Firebase Functions + Firestore (125K requests, 1GB storage/month)
 
-📖 **[See Complete Setup Guide →](./FIREBASE_NETLIFY_SETUP.md)**
+📖 **[See FREE Setup Guide →](./FREE_SPARK_SETUP.md)** (Recommended - 100% Free!)
+
+📖 **[Alternative Setup Guide →](./FIREBASE_NETLIFY_SETUP.md)** (Requires Firebase Blaze plan)
 
 ## 🚀 Features
 
