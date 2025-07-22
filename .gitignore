@@ -14,6 +14,13 @@ client/build/
 .env.test.local
 .env.production.local
 
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+functions/node_modules/
+functions/.env
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

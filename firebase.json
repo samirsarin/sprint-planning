@@ -1,0 +1,38 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "runtime": "nodejs18",
+      "codebase": "default"
+    },
+    {
+      "source": "sprint-planning",
+      "codebase": "sprint-planning",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "client/build",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

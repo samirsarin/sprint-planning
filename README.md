@@ -1,6 +1,16 @@
 # Planning Poker - Real-time Collaborative Estimation
 
+🎯 **Now supports FREE deployment with Netlify + Firebase!** 🎯
+
 A modern, real-time Planning Poker application built for agile teams to collaboratively estimate user stories and tasks. Features beautiful UI, instant synchronization, and seamless collaboration.
+
+## 🆓 Free Deployment Options
+
+This app now supports **completely free** deployment using:
+- **Frontend**: Netlify (100GB bandwidth, 300 build minutes/month)
+- **Backend**: Firebase Functions + Firestore (125K requests, 1GB storage/month)
+
+📖 **[See Complete Setup Guide →](./FIREBASE_NETLIFY_SETUP.md)**
 
 ## 🚀 Features
 

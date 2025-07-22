@@ -2,7 +2,6 @@
   "name": "samirs-sprint-planning-client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:5000",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
@@ -11,7 +10,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1",
     "react-scripts": "5.0.1",
-    "socket.io-client": "^4.7.4",
+    "firebase": "^10.7.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
