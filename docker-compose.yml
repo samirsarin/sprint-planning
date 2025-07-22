@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  samirs-sprint-planning:
+    build: .
+    container_name: samirs-sprint-planning
+    ports:
+      - "3000:5000"  # Map host port 3000 to container port 5000
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/sessions/health', (res) => { process.exit(res.statusCode === 404 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.samir.app=sprint-planning"
+      - "com.samir.version=1.0.0" 
