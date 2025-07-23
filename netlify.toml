@@ -24,12 +24,9 @@
   REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "1017106301522"
   REACT_APP_FIREBASE_APP_ID = "1:1017106301522:web:6ead796d5bb4c76322958b"
   
-  # Firebase Admin SDK (for Netlify Functions)
-  FIREBASE_PROJECT_ID = "sprint-planning-app-5c655"
-  FIREBASE_PRIVATE_KEY_ID = "your-private-key-id"
-  FIREBASE_PRIVATE_KEY = "your-private-key"
-  FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-xxxxx@sprint-planning-app-5c655.iam.gserviceaccount.com"
-  FIREBASE_CLIENT_ID = "your-client-id"
+  # Firebase Admin SDK credentials will be set in Netlify dashboard environment variables
+  # FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY_ID, FIREBASE_PRIVATE_KEY, 
+  # FIREBASE_CLIENT_EMAIL, FIREBASE_CLIENT_ID
 
 [context.deploy-preview.environment]
   REACT_APP_FIREBASE_API_KEY = "AIzaSyAna8fTgo9iMZBYBWDuVuW1iJIBWlDpPZI"
@@ -39,9 +36,4 @@
   REACT_APP_FIREBASE_MESSAGING_SENDER_ID = "1017106301522"
   REACT_APP_FIREBASE_APP_ID = "1:1017106301522:web:6ead796d5bb4c76322958b"
   
-  # Firebase Admin SDK (for Netlify Functions)
-  FIREBASE_PROJECT_ID = "sprint-planning-app-5c655"
-  FIREBASE_PRIVATE_KEY_ID = "your-private-key-id"
-  FIREBASE_PRIVATE_KEY = "your-private-key"
-  FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-xxxxx@sprint-planning-app-5c655.iam.gserviceaccount.com"
-  FIREBASE_CLIENT_ID = "your-client-id" 
+  # Firebase Admin SDK credentials will be set in Netlify dashboard environment variables 
