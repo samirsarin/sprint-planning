@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import sessionService from '../services/sessionService';
 import VotingCards from './VotingCards';
 import ParticipantGrid from './ParticipantGrid';
 import TopicSection from './TopicSection';
@@ -8,13 +8,11 @@ import TopicSection from './TopicSection';
 const GameRoom = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
-  const socketRef = useRef(null);
   
   const [sessionState, setSessionState] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -27,66 +25,34 @@ const GameRoom = () => {
           return;
         }
 
-        // Initialize socket connection
-        const serverUrl = process.env.NODE_ENV === 'production' 
-          ? window.location.origin 
-          : 'http://localhost:5000';
-        
-        socketRef.current = io(serverUrl);
-        
-        socketRef.current.on('connect', () => {
-          setConnected(true);
-          console.log('Connected to server');
-
-          // If we have a userId (host rejoining), try to rejoin
-          if (userId) {
-            socketRef.current.emit('rejoin-session', { sessionId, userId });
-          } else {
-            // Join as new participant
-            socketRef.current.emit('join-session', { sessionId, userName });
-          }
+        // Set current user info
+        setCurrentUser({
+          userId: userId || null,
+          sessionId,
+          userName
         });
 
-        socketRef.current.on('disconnect', () => {
-          setConnected(false);
-          console.log('Disconnected from server');
-        });
-
-        socketRef.current.on('joined-session', (data) => {
+        if (userId) {
+          // User is rejoining (likely the host)
+          console.log('User rejoining session');
+        } else {
+          // Join as new participant
+          console.log('Joining as new participant');
+          const joinResult = await sessionService.joinSession(sessionId, userName);
+          localStorage.setItem('samirsSprint_userId', joinResult.userId);
           setCurrentUser({
-            userId: data.userId,
-            sessionId: data.sessionId,
+            userId: joinResult.userId,
+            sessionId,
             userName
           });
-          setSessionState(data.state);
-          setLoading(false);
-          localStorage.setItem('samirsSprint_userId', data.userId);
-        });
-
-        socketRef.current.on('rejoined-session', (data) => {
-          setCurrentUser({
-            userId: data.userId,
-            sessionId: data.sessionId,
-            userName
-          });
-          setSessionState(data.state);
-          setLoading(false);
-        });
-
-        socketRef.current.on('session-updated', (newState) => {
-          setSessionState(newState);
-        });
-
-        socketRef.current.on('error', (errorData) => {
-          setError(errorData.message);
-          setLoading(false);
-        });
-
-        // Check if session exists via API
-        const response = await fetch(`/api/sessions/${sessionId}`);
-        if (!response.ok) {
-          throw new Error('Session not found');
         }
+
+        // Subscribe to session updates
+        sessionService.subscribeToSession(sessionId, (newState) => {
+          console.log('Session state updated:', newState);
+          setSessionState(newState);
+          setLoading(false);
+        });
 
       } catch (err) {
         setError('Failed to join session. Please check the session ID.');
@@ -98,33 +64,48 @@ const GameRoom = () => {
     initializeSession();
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+      // Clean up listeners when component unmounts
+      sessionService.unsubscribeFromSession(sessionId);
     };
   }, [sessionId, navigate]);
 
-  const castVote = (vote) => {
-    if (socketRef.current && currentUser) {
-      socketRef.current.emit('cast-vote', { vote });
+  const castVote = async (vote) => {
+    if (currentUser) {
+      try {
+        await sessionService.castVote(sessionId, currentUser.userId, vote);
+      } catch (error) {
+        console.error('Error casting vote:', error);
+      }
     }
   };
 
-  const revealVotes = () => {
-    if (socketRef.current && currentUser && isHost()) {
-      socketRef.current.emit('reveal-votes');
+  const revealVotes = async () => {
+    if (currentUser && isHost()) {
+      try {
+        await sessionService.revealVotes(sessionId, currentUser.userId);
+      } catch (error) {
+        console.error('Error revealing votes:', error);
+      }
     }
   };
 
-  const resetVotes = () => {
-    if (socketRef.current && currentUser && isHost()) {
-      socketRef.current.emit('reset-votes');
+  const resetVotes = async () => {
+    if (currentUser && isHost()) {
+      try {
+        await sessionService.resetVotes(sessionId, currentUser.userId);
+      } catch (error) {
+        console.error('Error resetting votes:', error);
+      }
     }
   };
 
-  const updateTopic = (topic) => {
-    if (socketRef.current && currentUser && isHost()) {
-      socketRef.current.emit('update-topic', { topic });
+  const updateTopic = async (topic) => {
+    if (currentUser && isHost()) {
+      try {
+        await sessionService.updateTopic(sessionId, currentUser.userId, topic);
+      } catch (error) {
+        console.error('Error updating topic:', error);
+      }
     }
   };
 
@@ -206,8 +187,8 @@ const GameRoom = () => {
           <span>•</span>
           <span>{sessionState.participants.length} participant{sessionState.participants.length !== 1 ? 's' : ''}</span>
           <span>•</span>
-          <span className={connected ? 'connected' : 'disconnected'}>
-            {connected ? '🟢 Connected' : '🔴 Disconnected'}
+          <span className="connected">
+            🟢 Connected
           </span>
           <button className="copy-link" onClick={copySessionLink}>
             📋 Copy Link

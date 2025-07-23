@@ -4,205 +4,240 @@ import {
   collection, 
   onSnapshot, 
   getDoc,
-  getDocs
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp
 } from 'firebase/firestore';
-
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? '/api'  // Netlify Functions URL in production
-  : 'http://localhost:8888/.netlify/functions/api'; // Netlify dev server
 
 class SessionService {
   constructor() {
     this.listeners = new Map();
   }
 
-  // API calls to Firebase Functions
+  // Create session directly in Firestore
   async createSession(hostName) {
-    const response = await fetch(`${API_URL}/sessions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ hostName }),
-    });
-    
-    if (!response.ok) {
+    try {
+      const hostId = this.generateId();
+      const sessionId = this.generateId();
+      
+      // Create session document
+      const sessionRef = doc(db, 'sessions', sessionId);
+      await setDoc(sessionRef, {
+        sessionId,
+        hostId,
+        currentTopic: '',
+        votesRevealed: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      // Add host as participant
+      const participantRef = doc(db, 'sessions', sessionId, 'participants', hostId);
+      await setDoc(participantRef, {
+        userId: hostId,
+        name: hostName || 'Host',
+        vote: null,
+        hasVoted: false,
+        isHost: true,
+        joinedAt: serverTimestamp()
+      });
+      
+      return {
+        sessionId,
+        hostId
+      };
+    } catch (error) {
+      console.error('Error creating session:', error);
       throw new Error('Failed to create session');
     }
-    
-    return response.json();
   }
 
+  // Join session directly in Firestore
   async joinSession(sessionId, userName) {
-    const response = await fetch(`${API_URL}/sessions/${sessionId}/join`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userName }),
-    });
-    
-    if (!response.ok) {
+    try {
+      const userId = this.generateId();
+      
+      // Check if session exists
+      const sessionRef = doc(db, 'sessions', sessionId);
+      const sessionDoc = await getDoc(sessionRef);
+      
+      if (!sessionDoc.exists()) {
+        throw new Error('Session not found');
+      }
+      
+      // Add participant
+      const participantRef = doc(db, 'sessions', sessionId, 'participants', userId);
+      await setDoc(participantRef, {
+        userId,
+        name: userName,
+        vote: null,
+        hasVoted: false,
+        isHost: false,
+        joinedAt: serverTimestamp()
+      });
+      
+      // Update session timestamp
+      await updateDoc(sessionRef, {
+        updatedAt: serverTimestamp()
+      });
+      
+      return { userId, sessionId };
+    } catch (error) {
+      console.error('Error joining session:', error);
       throw new Error('Failed to join session');
     }
-    
-    return response.json();
   }
 
+  // Cast vote directly in Firestore
   async castVote(sessionId, userId, vote) {
-    const response = await fetch(`${API_URL}/sessions/${sessionId}/vote`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId, vote }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to cast vote');
+    try {
+      const participantRef = doc(db, 'sessions', sessionId, 'participants', userId);
+      await updateDoc(participantRef, {
+        vote,
+        hasVoted: true
+      });
+      
+      // Update session timestamp
+      const sessionRef = doc(db, 'sessions', sessionId);
+      await updateDoc(sessionRef, {
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error casting vote:', error);
+      throw error;
     }
-    
-    return response.json();
   }
 
+  // Reveal votes
   async revealVotes(sessionId, userId) {
-    const response = await fetch(`${API_URL}/sessions/${sessionId}/reveal`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to reveal votes');
+    try {
+      // Check if user is host
+      const participantRef = doc(db, 'sessions', sessionId, 'participants', userId);
+      const participantDoc = await getDoc(participantRef);
+      
+      if (!participantDoc.exists() || !participantDoc.data().isHost) {
+        throw new Error('Only host can reveal votes');
+      }
+      
+      const sessionRef = doc(db, 'sessions', sessionId);
+      await updateDoc(sessionRef, {
+        votesRevealed: true,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error revealing votes:', error);
+      throw error;
     }
-    
-    return response.json();
   }
 
+  // Reset votes
   async resetVotes(sessionId, userId) {
-    const response = await fetch(`${API_URL}/sessions/${sessionId}/reset`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to reset votes');
+    try {
+      // Check if user is host
+      const participantRef = doc(db, 'sessions', sessionId, 'participants', userId);
+      const participantDoc = await getDoc(participantRef);
+      
+      if (!participantDoc.exists() || !participantDoc.data().isHost) {
+        throw new Error('Only host can reset votes');
+      }
+      
+      // Reset all participant votes
+      const participantsRef = collection(db, 'sessions', sessionId, 'participants');
+      const participantsSnapshot = await getDocs(participantsRef);
+      
+      const updatePromises = participantsSnapshot.docs.map(doc => 
+        updateDoc(doc.ref, {
+          vote: null,
+          hasVoted: false
+        })
+      );
+      
+      await Promise.all(updatePromises);
+      
+      // Reset session
+      const sessionRef = doc(db, 'sessions', sessionId);
+      await updateDoc(sessionRef, {
+        votesRevealed: false,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error resetting votes:', error);
+      throw error;
     }
-    
-    return response.json();
   }
 
+  // Update topic
   async updateTopic(sessionId, userId, topic) {
-    const response = await fetch(`${API_URL}/sessions/${sessionId}/topic`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId, topic }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to update topic');
+    try {
+      // Check if user is host
+      const participantRef = doc(db, 'sessions', sessionId, 'participants', userId);
+      const participantDoc = await getDoc(participantRef);
+      
+      if (!participantDoc.exists() || !participantDoc.data().isHost) {
+        throw new Error('Only host can update topic');
+      }
+      
+      const sessionRef = doc(db, 'sessions', sessionId);
+      await updateDoc(sessionRef, {
+        currentTopic: topic,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error updating topic:', error);
+      throw error;
     }
-    
-    return response.json();
   }
 
-  async leaveSession(sessionId, userId) {
-    const response = await fetch(`${API_URL}/sessions/${sessionId}/participants/${userId}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to leave session');
-    }
-    
-    return response.json();
-  }
-
-  // Real-time listeners using Firestore
+  // Listen to session updates
   subscribeToSession(sessionId, callback) {
     const sessionRef = doc(db, 'sessions', sessionId);
     const participantsRef = collection(db, 'sessions', sessionId, 'participants');
     
-    // Listen to session changes
-    const sessionUnsubscribe = onSnapshot(sessionRef, (doc) => {
-      if (doc.exists()) {
-        this.handleSessionUpdate(doc.data(), sessionId, callback);
+    // Listen to session data
+    const unsubscribeSession = onSnapshot(sessionRef, (sessionDoc) => {
+      if (sessionDoc.exists()) {
+        // Listen to participants
+        const unsubscribeParticipants = onSnapshot(participantsRef, (participantsSnapshot) => {
+          const participants = participantsSnapshot.docs.map(doc => doc.data());
+          const sessionData = sessionDoc.data();
+          
+          const state = {
+            ...sessionData,
+            participants,
+            allVoted: participants.length > 0 && participants.every(p => p.hasVoted)
+          };
+          
+          callback(state);
+        });
+        
+        // Store unsubscribe function
+        if (this.listeners.has(sessionId)) {
+          this.listeners.get(sessionId).participants();
+        }
+        this.listeners.set(sessionId, { 
+          session: unsubscribeSession, 
+          participants: unsubscribeParticipants 
+        });
       }
     });
-
-    // Listen to participants changes
-    const participantsUnsubscribe = onSnapshot(participantsRef, (snapshot) => {
-      this.handleParticipantsUpdate(snapshot, sessionId, callback);
-    });
-
-    // Store unsubscribe functions
-    this.listeners.set(sessionId, {
-      session: sessionUnsubscribe,
-      participants: participantsUnsubscribe
-    });
-
-    return () => this.unsubscribeFromSession(sessionId);
   }
 
-  async handleSessionUpdate(sessionData, sessionId, callback) {
-    try {
-      // Get current participants
-      const participantsSnapshot = await getDocs(collection(db, 'sessions', sessionId, 'participants'));
-      const participants = participantsSnapshot.docs.map(doc => doc.data());
-      
-      const allVoted = participants.length > 0 && participants.every(p => p.hasVoted);
-      
-      callback({
-        ...sessionData,
-        participants,
-        allVoted
-      });
-    } catch (error) {
-      console.error('Error handling session update:', error);
-    }
-  }
-
-  async handleParticipantsUpdate(snapshot, sessionId, callback) {
-    try {
-      // Get session data
-      const sessionDoc = await getDoc(doc(db, 'sessions', sessionId));
-      if (!sessionDoc.exists()) return;
-      
-      const sessionData = sessionDoc.data();
-      const participants = snapshot.docs.map(doc => doc.data());
-      const allVoted = participants.length > 0 && participants.every(p => p.hasVoted);
-      
-      callback({
-        ...sessionData,
-        participants,
-        allVoted
-      });
-    } catch (error) {
-      console.error('Error handling participants update:', error);
-    }
-  }
-
+  // Unsubscribe from session updates
   unsubscribeFromSession(sessionId) {
-    const listeners = this.listeners.get(sessionId);
-    if (listeners) {
-      listeners.session();
-      listeners.participants();
+    if (this.listeners.has(sessionId)) {
+      const { session, participants } = this.listeners.get(sessionId);
+      session();
+      participants();
       this.listeners.delete(sessionId);
     }
   }
 
-  // Clean up all listeners
-  cleanup() {
-    for (const [sessionId] of this.listeners) {
-      this.unsubscribeFromSession(sessionId);
-    }
+  // Generate unique ID
+  generateId() {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
   }
 }
 

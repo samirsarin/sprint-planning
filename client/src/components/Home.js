@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import sessionService from '../services/sessionService';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -20,19 +21,7 @@ const Home = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ hostName: hostName.trim() }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create session');
-      }
-
-      const data = await response.json();
+      const data = await sessionService.createSession(hostName.trim());
       
       // Store host info in localStorage
       localStorage.setItem('samirsSprint_userId', data.hostId);
