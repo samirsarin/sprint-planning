@@ -5,10 +5,8 @@ import {
   onSnapshot, 
   getDoc,
   getDocs,
-  addDoc,
   setDoc,
   updateDoc,
-  deleteDoc,
   serverTimestamp
 } from 'firebase/firestore';
 
@@ -241,4 +239,5 @@ class SessionService {
   }
 }
 
-export default new SessionService(); 
+const sessionServiceInstance = new SessionService();
+export default sessionServiceInstance; 
