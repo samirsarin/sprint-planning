@@ -4,7 +4,8 @@ import sessionService from '../services/sessionService';
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
   const [flyingEmojis, setFlyingEmojis] = useState([]);
   
-  const emojis = ['🎯', '🚀', '⭐', '🎉', '🔥', '💫', '✨', '🌟', '💥', '🎊'];
+  // Use the uploaded image instead of emojis
+  const throwImage = '/throw-image.jpg';
   
     // Function to handle incoming emoji throws from other users
   const handleIncomingEmojiThrow = useCallback((emojiData) => {
@@ -23,7 +24,7 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
       
       const newEmoji = {
         id: emojiData.emojiId,
-        emoji: emojiData.emoji,
+        image: throwImage,
         startX: sourceRect.left + sourceRect.width / 2,
         startY: sourceRect.top + sourceRect.height / 2,
         horizontalOffset: (Math.random() - 0.5) * 200,
@@ -49,7 +50,6 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
   }, [onEmojiThrow, handleIncomingEmojiThrow]);
   
   const throwEmojiAt = async (targetUserId) => {
-    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
     const emojiId = Date.now() + Math.random();
     
     // Get source element position
@@ -58,10 +58,10 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
     if (sourceElement) {
       const sourceRect = sourceElement.getBoundingClientRect();
       
-      // Create emoji that launches up and falls down
+      // Create image that launches up and falls down
       const newEmoji = {
         id: emojiId,
-        emoji: randomEmoji,
+        image: throwImage,
         startX: sourceRect.left + sourceRect.width / 2,
         startY: sourceRect.top + sourceRect.height / 2,
         // Random horizontal spread
@@ -80,7 +80,7 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
       // Send emoji throw to other users via session service
       try {
         const sessionId = window.location.pathname.split('/').pop();
-        await sessionService.throwEmoji(sessionId, currentUserId, targetUserId, randomEmoji, emojiId);
+        await sessionService.throwEmoji(sessionId, currentUserId, targetUserId, throwImage, emojiId);
       } catch (error) {
         console.error('Failed to send emoji throw:', error);
       }
@@ -245,9 +245,9 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
               <button
                 className="emoji-throw-btn"
                 onClick={() => throwEmojiAt(participant.userId)}
-                title={`Throw emoji at ${participant.name}`}
+                title={`Throw image at ${participant.name}`}
               >
-                🎯
+                📸
               </button>
             )}
           </div>
@@ -255,11 +255,11 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
       </div>
       {renderVotingStats()}
       
-      {/* Flying Emojis */}
+      {/* Flying Images */}
       {flyingEmojis.map((flyingEmoji) => (
         <div
           key={flyingEmoji.id}
-          className="flying-emoji-gravity"
+          className="flying-image-gravity"
           style={{
             '--start-x': `${flyingEmoji.startX}px`,
             '--start-y': `${flyingEmoji.startY}px`,
@@ -267,7 +267,11 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
             '--rotation': `${flyingEmoji.rotation}deg`,
           }}
         >
-          {flyingEmoji.emoji}
+          <img 
+            src={flyingEmoji.image} 
+            alt="Thrown item" 
+            className="flying-image"
+          />
         </div>
       ))}
     </div>

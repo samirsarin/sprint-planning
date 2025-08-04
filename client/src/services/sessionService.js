@@ -193,8 +193,8 @@ class SessionService {
     }
   }
 
-  // Throw emoji
-  async throwEmoji(sessionId, fromUserId, toUserId, emoji, emojiId) {
+  // Throw image
+  async throwEmoji(sessionId, fromUserId, toUserId, image, emojiId) {
     const response = await fetch(`${API_URL}/sessions/${sessionId}/emoji-throw`, {
       method: 'POST',
       headers: {
@@ -203,13 +203,13 @@ class SessionService {
       body: JSON.stringify({
         fromUserId,
         toUserId,
-        emoji,
+        image,
         emojiId
       }),
     });
     
     if (!response.ok) {
-      throw new Error('Failed to throw emoji');
+      throw new Error('Failed to throw image');
     }
     
     return response.json();

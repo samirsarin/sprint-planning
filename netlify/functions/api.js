@@ -323,16 +323,16 @@ async function removeParticipant(sessionId, userId) {
 }
 
 async function handleEmojiThrow(sessionId, body) {
-  const { fromUserId, toUserId, emoji, emojiId } = body;
+  const { fromUserId, toUserId, image, emojiId } = body;
   
   const sessionRef = db.collection('sessions').doc(sessionId);
   
-  // Store emoji throw in Firestore for real-time sync
+  // Store image throw in Firestore for real-time sync
   const emojiThrowData = {
     id: emojiId,
     fromUserId,
     toUserId,
-    emoji,
+    image,
     timestamp: admin.firestore.FieldValue.serverTimestamp()
   };
   
