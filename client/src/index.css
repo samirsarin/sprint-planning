@@ -445,6 +445,16 @@ body {
   object-fit: cover;
   border: 2px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  display: block;
+  background: #f0f0f0;
+}
+
+.emoji-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
 }
 
 @keyframes emojiGravity {

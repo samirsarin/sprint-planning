@@ -5,11 +5,11 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
   const [flyingEmojis, setFlyingEmojis] = useState([]);
   
   // To use your custom image:
-  // 1. Save your image as 'samir.jpg' in client/public/ folder
-  // 2. Change the line below to: const throwImage = '/samir.jpg';
+  // 1. Save your image as 'samir.jpeg' in client/public/ folder
+  // 2. Using your actual image file name
   
-  // For now, using a fallback emoji until you add your image
-  const throwImage = '/samir.jpg'; // This will trigger the emoji fallback
+  // Using your custom image
+  const throwImage = '/samir.jpeg';
   
     // Function to handle incoming emoji throws from other users
   const handleIncomingEmojiThrow = useCallback((emojiData) => {
@@ -277,7 +277,11 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
                 src={flyingEmoji.image} 
                 alt="🎯" 
                 className="flying-image"
+                onLoad={(e) => {
+                  console.log('Image loaded successfully:', flyingEmoji.image);
+                }}
                 onError={(e) => {
+                  console.log('Image failed to load:', flyingEmoji.image);
                   // If image fails to load, show emoji as fallback
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
