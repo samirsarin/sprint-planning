@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import sessionService from '../services/sessionService';
 
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
   const [flyingEmojis, setFlyingEmojis] = useState([]);
@@ -7,6 +8,14 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
   
   // Function to handle incoming emoji throws from other users
   const handleIncomingEmojiThrow = (emojiData) => {
+    console.log('Handling incoming emoji throw:', emojiData);
+    
+    // Don't show emoji throws from yourself
+    if (emojiData.fromUserId === currentUserId) {
+      console.log('Ignoring emoji from self');
+      return;
+    }
+    
     const sourceElement = document.querySelector(`[data-user-id="${emojiData.fromUserId}"]`);
     
     if (sourceElement) {
@@ -21,11 +30,14 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
         rotation: Math.random() * 360,
       };
       
+      console.log('Adding flying emoji:', newEmoji);
       setFlyingEmojis(prev => [...prev, newEmoji]);
       
       setTimeout(() => {
         setFlyingEmojis(prev => prev.filter(e => e.id !== emojiData.emojiId));
       }, 3000);
+    } else {
+      console.log('Source element not found for user:', emojiData.fromUserId);
     }
   };
   
@@ -65,19 +77,10 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
         setFlyingEmojis(prev => prev.filter(e => e.id !== emojiId));
       }, 3000);
       
-      // Send emoji throw to other users via API
+      // Send emoji throw to other users via session service
       try {
         const sessionId = window.location.pathname.split('/').pop();
-        await fetch('/api/sessions/' + sessionId + '/emoji-throw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fromUserId: currentUserId,
-            toUserId: targetUserId,
-            emoji: randomEmoji,
-            emojiId: emojiId
-          })
-        });
+        await sessionService.throwEmoji(sessionId, currentUserId, targetUserId, randomEmoji, emojiId);
       } catch (error) {
         console.error('Failed to send emoji throw:', error);
       }

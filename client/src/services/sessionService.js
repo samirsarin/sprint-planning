@@ -189,6 +189,28 @@ class SessionService {
     }
   }
 
+  // Throw emoji
+  async throwEmoji(sessionId, fromUserId, toUserId, emoji, emojiId) {
+    const response = await fetch(`${API_URL}/sessions/${sessionId}/emoji-throw`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fromUserId,
+        toUserId,
+        emoji,
+        emojiId
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to throw emoji');
+    }
+    
+    return response.json();
+  }
+
   // Listen to session updates
   subscribeToSession(sessionId, callback, emojiCallback) {
     const sessionRef = doc(db, 'sessions', sessionId);
@@ -217,12 +239,9 @@ class SessionService {
           snapshot.docChanges().forEach((change) => {
             if (change.type === 'added' && emojiCallback) {
               const emojiData = change.doc.data();
-              // Only show emoji throws that are recent (within last 5 seconds)
-              const now = new Date();
-              const throwTime = emojiData.timestamp?.toDate();
-              if (throwTime && (now - throwTime) < 5000) {
-                emojiCallback(emojiData);
-              }
+              console.log('New emoji throw detected:', emojiData);
+              // Show all emoji throws (remove time restriction for debugging)
+              emojiCallback(emojiData);
             }
           });
         });
