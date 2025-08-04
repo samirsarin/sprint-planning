@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import sessionService from '../services/sessionService';
 
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
@@ -6,8 +6,8 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
   
   const emojis = ['🎯', '🚀', '⭐', '🎉', '🔥', '💫', '✨', '🌟', '💥', '🎊'];
   
-  // Function to handle incoming emoji throws from other users
-  const handleIncomingEmojiThrow = (emojiData) => {
+    // Function to handle incoming emoji throws from other users
+  const handleIncomingEmojiThrow = useCallback((emojiData) => {
     console.log('Handling incoming emoji throw:', emojiData);
     
     // Don't show emoji throws from yourself
@@ -39,14 +39,14 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
     } else {
       console.log('Source element not found for user:', emojiData.fromUserId);
     }
-  };
-  
+  }, [currentUserId]);
+
   // Expose the handler to parent component
   React.useEffect(() => {
     if (onEmojiThrow) {
       onEmojiThrow.current = handleIncomingEmojiThrow;
     }
-  }, [onEmojiThrow]);
+  }, [onEmojiThrow, handleIncomingEmojiThrow]);
   
   const throwEmojiAt = async (targetUserId) => {
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
