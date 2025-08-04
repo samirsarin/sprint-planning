@@ -190,9 +190,10 @@ class SessionService {
   }
 
   // Listen to session updates
-  subscribeToSession(sessionId, callback) {
+  subscribeToSession(sessionId, callback, emojiCallback) {
     const sessionRef = doc(db, 'sessions', sessionId);
     const participantsRef = collection(db, 'sessions', sessionId, 'participants');
+    const emojiThrowsRef = collection(db, 'sessions', sessionId, 'emojiThrows');
     
     // Listen to session data
     const unsubscribeSession = onSnapshot(sessionRef, (sessionDoc) => {
@@ -211,24 +212,45 @@ class SessionService {
           callback(state);
         });
         
-        // Store unsubscribe function
+        // Listen to emoji throws
+        const unsubscribeEmojiThrows = onSnapshot(emojiThrowsRef, (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === 'added' && emojiCallback) {
+              const emojiData = change.doc.data();
+              // Only show emoji throws that are recent (within last 5 seconds)
+              const now = new Date();
+              const throwTime = emojiData.timestamp?.toDate();
+              if (throwTime && (now - throwTime) < 5000) {
+                emojiCallback(emojiData);
+              }
+            }
+          });
+        });
+
+        // Store unsubscribe functions
         if (this.listeners.has(sessionId)) {
-          this.listeners.get(sessionId).participants();
+          const listeners = this.listeners.get(sessionId);
+          listeners.participants?.();
+          listeners.emojiThrows?.();
         }
         this.listeners.set(sessionId, { 
           session: unsubscribeSession, 
-          participants: unsubscribeParticipants 
+          participants: unsubscribeParticipants,
+          emojiThrows: unsubscribeEmojiThrows
         });
       }
     });
+    
+    return () => this.unsubscribeFromSession(sessionId);
   }
 
   // Unsubscribe from session updates
   unsubscribeFromSession(sessionId) {
     if (this.listeners.has(sessionId)) {
-      const { session, participants } = this.listeners.get(sessionId);
+      const { session, participants, emojiThrows } = this.listeners.get(sessionId);
       session();
       participants();
+      emojiThrows?.();
       this.listeners.delete(sessionId);
     }
   }

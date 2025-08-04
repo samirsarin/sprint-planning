@@ -428,34 +428,72 @@ body {
   transform: scale(0.95);
 }
 
-/* Flying Emoji Animation */
-.flying-emoji {
+/* Flying Emoji Animation with Gravity */
+.flying-emoji-gravity {
   position: fixed;
   pointer-events: none;
   font-size: 24px;
   z-index: 1000;
   left: var(--start-x);
   top: var(--start-y);
-  animation: flyEmoji 1s ease-out forwards;
+  animation: emojiGravity 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-@keyframes flyEmoji {
+@keyframes emojiGravity {
   0% {
-    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    transform: translate(-50%, -50%) 
+               rotate(var(--rotation)) 
+               scale(1);
     opacity: 1;
   }
-  50% {
+  
+  /* Launch phase - up and out */
+  25% {
     transform: translate(
-      calc(var(--end-x) - var(--start-x)) / 2 - 50%, 
-      calc(var(--end-y) - var(--start-y)) / 2 - 50% - 20px
-    ) scale(1.2) rotate(180deg);
+      calc(var(--horizontal-offset) * 0.3 - 50%), 
+      calc(-120px - 50%)
+    ) rotate(calc(var(--rotation) + 90deg)) 
+      scale(1.1);
     opacity: 1;
   }
+  
+  /* Peak height */
+  40% {
+    transform: translate(
+      calc(var(--horizontal-offset) * 0.7 - 50%), 
+      calc(-200px - 50%)
+    ) rotate(calc(var(--rotation) + 180deg)) 
+      scale(1.2);
+    opacity: 1;
+  }
+  
+  /* Falling phase */
+  70% {
+    transform: translate(
+      calc(var(--horizontal-offset) - 50%), 
+      calc(50vh - 50%)
+    ) rotate(calc(var(--rotation) + 270deg)) 
+      scale(1);
+    opacity: 1;
+  }
+  
+  /* Hit bottom of screen */
+  90% {
+    transform: translate(
+      calc(var(--horizontal-offset) - 50%), 
+      calc(100vh - 50%)
+    ) rotate(calc(var(--rotation) + 360deg)) 
+      scale(0.8);
+    opacity: 0.8;
+  }
+  
+  /* Disappear */
   100% {
     transform: translate(
-      calc(var(--end-x) - var(--start-x)) - 50%, 
-      calc(var(--end-y) - var(--start-y)) - 50%
-    ) scale(0.8) rotate(360deg);
+      calc(var(--horizontal-offset) - 50%), 
+      calc(100vh + 50px - 50%)
+    ) rotate(calc(var(--rotation) + 400deg)) 
+      scale(0.3);
     opacity: 0;
   }
 }

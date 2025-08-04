@@ -1,37 +1,86 @@
 import React, { useState } from 'react';
 
-const ParticipantGrid = ({ participants, votesRevealed, currentUserId }) => {
+const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
   const [flyingEmojis, setFlyingEmojis] = useState([]);
   
   const emojis = ['🎯', '🚀', '⭐', '🎉', '🔥', '💫', '✨', '🌟', '💥', '🎊'];
   
-  const throwEmojiAt = (targetUserId) => {
+  // Function to handle incoming emoji throws from other users
+  const handleIncomingEmojiThrow = (emojiData) => {
+    const sourceElement = document.querySelector(`[data-user-id="${emojiData.fromUserId}"]`);
+    
+    if (sourceElement) {
+      const sourceRect = sourceElement.getBoundingClientRect();
+      
+      const newEmoji = {
+        id: emojiData.emojiId,
+        emoji: emojiData.emoji,
+        startX: sourceRect.left + sourceRect.width / 2,
+        startY: sourceRect.top + sourceRect.height / 2,
+        horizontalOffset: (Math.random() - 0.5) * 200,
+        rotation: Math.random() * 360,
+      };
+      
+      setFlyingEmojis(prev => [...prev, newEmoji]);
+      
+      setTimeout(() => {
+        setFlyingEmojis(prev => prev.filter(e => e.id !== emojiData.emojiId));
+      }, 3000);
+    }
+  };
+  
+  // Expose the handler to parent component
+  React.useEffect(() => {
+    if (onEmojiThrow) {
+      onEmojiThrow.current = handleIncomingEmojiThrow;
+    }
+  }, [onEmojiThrow]);
+  
+  const throwEmojiAt = async (targetUserId) => {
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
     const emojiId = Date.now() + Math.random();
     
-    // Get source and target positions
+    // Get source element position
     const sourceElement = document.querySelector(`[data-user-id="${currentUserId}"]`);
-    const targetElement = document.querySelector(`[data-user-id="${targetUserId}"]`);
     
-    if (sourceElement && targetElement) {
+    if (sourceElement) {
       const sourceRect = sourceElement.getBoundingClientRect();
-      const targetRect = targetElement.getBoundingClientRect();
       
+      // Create emoji that launches up and falls down
       const newEmoji = {
         id: emojiId,
         emoji: randomEmoji,
         startX: sourceRect.left + sourceRect.width / 2,
         startY: sourceRect.top + sourceRect.height / 2,
-        endX: targetRect.left + targetRect.width / 2,
-        endY: targetRect.top + targetRect.height / 2,
+        // Random horizontal spread
+        horizontalOffset: (Math.random() - 0.5) * 200,
+        // Random rotation
+        rotation: Math.random() * 360,
       };
       
       setFlyingEmojis(prev => [...prev, newEmoji]);
       
-      // Remove emoji after animation completes
+      // Remove emoji after animation completes (3 seconds for full fall)
       setTimeout(() => {
         setFlyingEmojis(prev => prev.filter(e => e.id !== emojiId));
-      }, 1000);
+      }, 3000);
+      
+      // Send emoji throw to other users via API
+      try {
+        const sessionId = window.location.pathname.split('/').pop();
+        await fetch('/api/sessions/' + sessionId + '/emoji-throw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromUserId: currentUserId,
+            toUserId: targetUserId,
+            emoji: randomEmoji,
+            emojiId: emojiId
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send emoji throw:', error);
+      }
     }
   };
 
@@ -207,12 +256,12 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId }) => {
       {flyingEmojis.map((flyingEmoji) => (
         <div
           key={flyingEmoji.id}
-          className="flying-emoji"
+          className="flying-emoji-gravity"
           style={{
             '--start-x': `${flyingEmoji.startX}px`,
             '--start-y': `${flyingEmoji.startY}px`,
-            '--end-x': `${flyingEmoji.endX}px`,
-            '--end-y': `${flyingEmoji.endY}px`,
+            '--horizontal-offset': `${flyingEmoji.horizontalOffset}px`,
+            '--rotation': `${flyingEmoji.rotation}deg`,
           }}
         >
           {flyingEmoji.emoji}

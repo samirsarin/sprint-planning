@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import sessionService from '../services/sessionService';
 import VotingCards from './VotingCards';
@@ -13,6 +13,7 @@ const GameRoom = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const emojiHandlerRef = useRef(null);
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -52,6 +53,11 @@ const GameRoom = () => {
           console.log('Session state updated:', newState);
           setSessionState(newState);
           setLoading(false);
+        }, (emojiData) => {
+          // Handle incoming emoji throws
+          if (emojiHandlerRef.current) {
+            emojiHandlerRef.current(emojiData);
+          }
         });
 
       } catch (err) {
@@ -213,6 +219,7 @@ const GameRoom = () => {
           participants={sessionState.participants}
           votesRevealed={sessionState.votesRevealed}
           currentUserId={currentUser.userId}
+          onEmojiThrow={emojiHandlerRef}
         />
 
         <VotingCards

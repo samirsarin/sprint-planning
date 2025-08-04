@@ -125,6 +125,9 @@ exports.handler = async (event, context) => {
       const sessionId = pathParts[2];
       const userId = pathParts[4];
       response = await removeParticipant(sessionId, userId);
+    } else if (method === 'POST' && path.includes('/emoji-throw')) {
+      const sessionId = path.split('/')[2];
+      response = await handleEmojiThrow(sessionId, JSON.parse(event.body));
     } else if (method === 'GET' && path === '/health') {
       response = { status: 'ok', timestamp: new Date().toISOString() };
     } else {
@@ -312,6 +315,30 @@ async function removeParticipant(sessionId, userId) {
   await participantRef.delete();
   
   // Update session timestamp
+  await sessionRef.update({
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+  
+  return { success: true };
+}
+
+async function handleEmojiThrow(sessionId, body) {
+  const { fromUserId, toUserId, emoji, emojiId } = body;
+  
+  const sessionRef = db.collection('sessions').doc(sessionId);
+  
+  // Store emoji throw in Firestore for real-time sync
+  const emojiThrowData = {
+    id: emojiId,
+    fromUserId,
+    toUserId,
+    emoji,
+    timestamp: admin.firestore.FieldValue.serverTimestamp()
+  };
+  
+  await sessionRef.collection('emojiThrows').doc(emojiId.toString()).set(emojiThrowData);
+  
+  // Update session timestamp to trigger listeners
   await sessionRef.update({
     updatedAt: admin.firestore.FieldValue.serverTimestamp()
   });
