@@ -1,6 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId }) => {
+  const [flyingEmojis, setFlyingEmojis] = useState([]);
+  
+  const emojis = ['🎯', '🚀', '⭐', '🎉', '🔥', '💫', '✨', '🌟', '💥', '🎊'];
+  
+  const throwEmojiAt = (targetUserId) => {
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const emojiId = Date.now() + Math.random();
+    
+    // Get source and target positions
+    const sourceElement = document.querySelector(`[data-user-id="${currentUserId}"]`);
+    const targetElement = document.querySelector(`[data-user-id="${targetUserId}"]`);
+    
+    if (sourceElement && targetElement) {
+      const sourceRect = sourceElement.getBoundingClientRect();
+      const targetRect = targetElement.getBoundingClientRect();
+      
+      const newEmoji = {
+        id: emojiId,
+        emoji: randomEmoji,
+        startX: sourceRect.left + sourceRect.width / 2,
+        startY: sourceRect.top + sourceRect.height / 2,
+        endX: targetRect.left + targetRect.width / 2,
+        endY: targetRect.top + targetRect.height / 2,
+      };
+      
+      setFlyingEmojis(prev => [...prev, newEmoji]);
+      
+      // Remove emoji after animation completes
+      setTimeout(() => {
+        setFlyingEmojis(prev => prev.filter(e => e.id !== emojiId));
+      }, 1000);
+    }
+  };
+
   const getParticipantInitials = (name) => {
     return name
       .split(' ')
@@ -142,6 +176,7 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId }) => {
           <div
             key={participant.userId}
             className={getParticipantCardClass(participant)}
+            data-user-id={participant.userId}
           >
             <div className="participant-avatar">
               {getParticipantInitials(participant.name)}
@@ -154,10 +189,35 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId }) => {
               {getParticipantStatus(participant)}
             </div>
             {renderVote(participant)}
+            {participant.userId !== currentUserId && (
+              <button
+                className="emoji-throw-btn"
+                onClick={() => throwEmojiAt(participant.userId)}
+                title={`Throw emoji at ${participant.name}`}
+              >
+                🎯
+              </button>
+            )}
           </div>
         ))}
       </div>
       {renderVotingStats()}
+      
+      {/* Flying Emojis */}
+      {flyingEmojis.map((flyingEmoji) => (
+        <div
+          key={flyingEmoji.id}
+          className="flying-emoji"
+          style={{
+            '--start-x': `${flyingEmoji.startX}px`,
+            '--start-y': `${flyingEmoji.startY}px`,
+            '--end-x': `${flyingEmoji.endX}px`,
+            '--end-y': `${flyingEmoji.endY}px`,
+          }}
+        >
+          {flyingEmoji.emoji}
+        </div>
+      ))}
     </div>
   );
 };

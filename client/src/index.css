@@ -393,6 +393,78 @@ body {
   background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
 }
 
+/* Emoji Throw Button */
+.emoji-throw-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: scale(0.8);
+  z-index: 10;
+}
+
+.participant-card:hover .emoji-throw-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.emoji-throw-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.emoji-throw-btn:active {
+  transform: scale(0.95);
+}
+
+/* Flying Emoji Animation */
+.flying-emoji {
+  position: fixed;
+  pointer-events: none;
+  font-size: 24px;
+  z-index: 1000;
+  left: var(--start-x);
+  top: var(--start-y);
+  animation: flyEmoji 1s ease-out forwards;
+}
+
+@keyframes flyEmoji {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(
+      calc(var(--end-x) - var(--start-x)) / 2 - 50%, 
+      calc(var(--end-y) - var(--start-y)) / 2 - 50% - 20px
+    ) scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+      calc(var(--end-x) - var(--start-x)) - 50%, 
+      calc(var(--end-y) - var(--start-y)) - 50%
+    ) scale(0.8) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Make participant cards relative for absolute positioning of emoji button */
+.participant-card {
+  position: relative;
+}
+
 /* Status Messages */
 .status-message {
   text-align: center;

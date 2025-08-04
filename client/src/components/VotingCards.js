@@ -18,7 +18,7 @@ const VotingCards = ({ selectedVote, onVote, disabled }) => {
           <button
             key={value}
             className={`voting-card ${value === '☕' ? 'coffee' : ''} ${
-              selectedVote === value ? 'selected' : ''
+              selectedVote !== null && selectedVote !== undefined && selectedVote == value ? 'selected' : ''
             }`}
             onClick={() => handleCardClick(value)}
             disabled={disabled}
