@@ -10,6 +10,10 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '/api'  // Netlify Functions URL in production
+  : 'http://localhost:8888/.netlify/functions/api'; // Netlify dev server
+
 class SessionService {
   constructor() {
     this.listeners = new Map();
