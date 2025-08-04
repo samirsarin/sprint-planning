@@ -9,7 +9,7 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
   // 2. Change the line below to: const throwImage = '/samir.jpg';
   
   // For now, using a fallback emoji until you add your image
-  const throwImage = null; // This will trigger the emoji fallback
+  const throwImage = '/samir.jpg'; // This will trigger the emoji fallback
   
     // Function to handle incoming emoji throws from other users
   const handleIncomingEmojiThrow = useCallback((emojiData) => {
