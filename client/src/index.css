@@ -428,14 +428,14 @@ body {
   transform: scale(0.95);
 }
 
-/* Flying Image Animation with Gravity */
-.flying-image-gravity {
+/* Flying Emoji/Image Animation with Gravity */
+.flying-emoji-gravity {
   position: fixed;
   pointer-events: none;
   z-index: 1000;
   left: var(--start-x);
   top: var(--start-y);
-  animation: imageGravity 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: emojiGravity 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .flying-image {
@@ -447,7 +447,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes imageGravity {
+@keyframes emojiGravity {
   0% {
     transform: translate(-50%, -50%) 
                rotate(var(--rotation)) 

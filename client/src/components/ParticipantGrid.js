@@ -4,8 +4,12 @@ import sessionService from '../services/sessionService';
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
   const [flyingEmojis, setFlyingEmojis] = useState([]);
   
-  // Use the uploaded image instead of emojis
-  const throwImage = '/throw-image.jpg';
+  // To use your custom image:
+  // 1. Save your image as 'samir.jpg' in client/public/ folder
+  // 2. Change the line below to: const throwImage = '/samir.jpg';
+  
+  // For now, using a fallback emoji until you add your image
+  const throwImage = null; // This will trigger the emoji fallback
   
     // Function to handle incoming emoji throws from other users
   const handleIncomingEmojiThrow = useCallback((emojiData) => {
@@ -259,7 +263,7 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
       {flyingEmojis.map((flyingEmoji) => (
         <div
           key={flyingEmoji.id}
-          className="flying-image-gravity"
+          className="flying-emoji-gravity"
           style={{
             '--start-x': `${flyingEmoji.startX}px`,
             '--start-y': `${flyingEmoji.startY}px`,
@@ -267,11 +271,33 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
             '--rotation': `${flyingEmoji.rotation}deg`,
           }}
         >
-          <img 
-            src={flyingEmoji.image} 
-            alt="Thrown item" 
-            className="flying-image"
-          />
+          {flyingEmoji.image ? (
+            <>
+              <img 
+                src={flyingEmoji.image} 
+                alt="🎯" 
+                className="flying-image"
+                onError={(e) => {
+                  // If image fails to load, show emoji as fallback
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <div 
+                className="emoji-fallback"
+                style={{display: 'none', fontSize: '40px'}}
+              >
+                🎯
+              </div>
+            </>
+          ) : (
+            <div 
+              className="emoji-fallback"
+              style={{fontSize: '40px'}}
+            >
+              🎯
+            </div>
+          )}
         </div>
       ))}
     </div>
