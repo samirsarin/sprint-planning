@@ -1,10 +1,11 @@
 import React from 'react';
 
-const VotingCards = ({ selectedVote, onVote, disabled }) => {
+const VotingCards = ({ selectedVote, onVote, disabled, votesRevealed }) => {
   // Fibonacci sequence + coffee break card
   const cards = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, '☕'];
 
   const handleCardClick = (value) => {
+    // Users can now edit their votes even after reveal
     if (!disabled) {
       onVote(value);
     }
@@ -28,7 +29,12 @@ const VotingCards = ({ selectedVote, onVote, disabled }) => {
           </button>
         ))}
       </div>
-      {disabled && (
+      {votesRevealed && (
+        <p style={{ textAlign: 'center', marginTop: '16px', color: '#007bff', fontWeight: 'bold' }}>
+          ✏️ You can edit your estimate even after reveal!
+        </p>
+      )}
+      {disabled && !votesRevealed && (
         <p style={{ textAlign: 'center', marginTop: '16px', color: '#666' }}>
           Samir-voting is paused while estimates are revealed
         </p>

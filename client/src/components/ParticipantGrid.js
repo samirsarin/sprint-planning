@@ -3,6 +3,40 @@ import sessionService from '../services/sessionService';
 
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
   const [flyingEmojis, setFlyingEmojis] = useState([]);
+  const [updatedVotes, setUpdatedVotes] = useState(new Set());
+  const [previousVotes, setPreviousVotes] = useState(new Map());
+  
+  // Track when votes change after reveal to show animation
+  React.useEffect(() => {
+    if (votesRevealed && previousVotes.size > 0) {
+      participants.forEach(participant => {
+        if (participant.hasVoted) {
+          const prevVote = previousVotes.get(participant.userId);
+          if (prevVote !== undefined && prevVote !== participant.vote) {
+            // Vote was updated after reveal - show animation
+            setUpdatedVotes(prev => new Set([...prev, participant.userId]));
+            // Remove animation after it completes
+            setTimeout(() => {
+              setUpdatedVotes(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(participant.userId);
+                return newSet;
+              });
+            }, 600);
+          }
+        }
+      });
+    }
+    
+    // Update previous votes for next comparison
+    const newPreviousVotes = new Map();
+    participants.forEach(participant => {
+      if (participant.hasVoted) {
+        newPreviousVotes.set(participant.userId, participant.vote);
+      }
+    });
+    setPreviousVotes(newPreviousVotes);
+  }, [participants, votesRevealed]);
   
   // To use your custom image:
   // 1. Save your image as 'samir.jpeg' in client/public/ folder
@@ -116,6 +150,10 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
       classes += ' host';
     } else if (participant.hasVoted) {
       classes += ' voted';
+    }
+
+    if (updatedVotes.has(participant.userId)) {
+      classes += ' vote-updated';
     }
     
     return classes;

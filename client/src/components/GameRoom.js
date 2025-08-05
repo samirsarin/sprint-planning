@@ -225,7 +225,8 @@ const GameRoom = () => {
         <VotingCards
           selectedVote={getCurrentUserVote()}
           onVote={castVote}
-          disabled={sessionState.votesRevealed}
+          disabled={false}
+          votesRevealed={sessionState.votesRevealed}
         />
 
         {isHost() && (
