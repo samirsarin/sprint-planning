@@ -4,14 +4,14 @@ import sessionService from '../services/sessionService';
 const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiThrow }) => {
   const [flyingEmojis, setFlyingEmojis] = useState([]);
   const [updatedVotes, setUpdatedVotes] = useState(new Set());
-  const [previousVotes, setPreviousVotes] = useState(new Map());
+  const previousVotesRef = React.useRef(new Map());
   
   // Track when votes change after reveal to show animation
   React.useEffect(() => {
-    if (votesRevealed && previousVotes.size > 0) {
+    if (votesRevealed && previousVotesRef.current.size > 0) {
       participants.forEach(participant => {
         if (participant.hasVoted) {
-          const prevVote = previousVotes.get(participant.userId);
+          const prevVote = previousVotesRef.current.get(participant.userId);
           if (prevVote !== undefined && prevVote !== participant.vote) {
             // Vote was updated after reveal - show animation
             setUpdatedVotes(prev => new Set([...prev, participant.userId]));
@@ -35,7 +35,7 @@ const ParticipantGrid = ({ participants, votesRevealed, currentUserId, onEmojiTh
         newPreviousVotes.set(participant.userId, participant.vote);
       }
     });
-    setPreviousVotes(newPreviousVotes);
+    previousVotesRef.current = newPreviousVotes;
   }, [participants, votesRevealed]);
   
   // To use your custom image:
